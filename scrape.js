@@ -19,7 +19,30 @@ do {
 
   const response = await fetch(`${options.url}/products.json?page=${curPage}`);
   const data = await response.json();
-  products.push(...data.products);
+  products.push(
+    ...data.products.map((product) => {
+      const images = product.images.map((image) => image.src);
+
+      return {
+        tracking_id: product.id,
+        image_urls: images,
+        tag_set: product.tags,
+        chunk_html: `<h1>${product.title}</h1>${product.body_html}
+      ${
+        // all products have at least one variant
+        product.variants.length > 1
+          ? `<p>Product variants:</p><ul>${product.variants.map(
+              (variant) =>
+                `<li><h2>Variant name ${variant.title}</h2><p>Price ${variant.price}</p></li>`
+            )}</ul>`
+          : `<p>Price ${product.variants[0].price}</p>`
+      }
+      `,
+        metadata: product,
+        link: options.url + "products/" + product.handle,
+      };
+    })
+  );
   curPage++;
   if (data.products.length === 0) {
     curPage = -1;
