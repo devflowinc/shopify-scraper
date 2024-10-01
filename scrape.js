@@ -49,8 +49,8 @@ do {
         image_urls: images,
         tag_set: product.tags,
         chunk_html: `<h1>${product.title}</h1>${product.body_html}`,
-        // metadata: product,
-        link: `${options.url}products/${product.handle}${
+        metadata: product,
+        link: `${options.url}/products/${product.handle}${
           product.variant_id ? `?variant=${product.variant_id}` : ""
         }`,
         num_value: parseFloat(product.price),
