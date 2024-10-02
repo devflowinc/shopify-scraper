@@ -1,69 +1,26 @@
 #!/usr/bin/env bun
 
 import { Command } from "commander";
+import { scrape } from "./src/scrape";
+import { uploadToTrieve } from "./src/upload";
 const program = new Command();
 
 program
+  .name("@trieve/shopify-scraper")
+  .description("CLI to  that scapes shopify and uploads to trieve")
+  .version("0.8.0");
+
+program
+  .command("scrape")
   .requiredOption("-u, --url <url>", "URL to scrape")
   .requiredOption("-o, --output <output>", "Output file")
-  .parse(process.argv);
+  .action(scrape);
 
-const options = program.opts();
+program
+  .command("upload")
+  .requiredOption("-f, --file <file path>", "JSON file to upload to trieve")
+  .requiredOption("-a, --api_key <key>", "Your API key")
+  .requiredOption("-d, --dataset <key>", "The dataset ID")
+  .action(uploadToTrieve);
 
-const products = [];
-let curPage = 1;
-
-do {
-  console.clear();
-  console.log(`Scraping page ${curPage}`);
-
-  const response = await fetch(`${options.url}/products.json?page=${curPage}`);
-  const data = await response.json();
-  const productsAndVariantsDivided = data.products.reduce((acc, curr) => {
-    if (curr.variants.length === 1) {
-      acc.push({ ...curr, price: curr.variants[0].price });
-      return acc;
-    }
-
-    acc.push(
-      ...curr.variants.map((variant) => ({
-        ...curr,
-        ...variant,
-        id: variant.product_id || curr.id,
-        title: `${curr.title} ${variant.title}`,
-        variant_id: variant.id,
-      }))
-    );
-
-    return acc;
-  }, []);
-  products.push(
-    ...productsAndVariantsDivided.map((product) => {
-      const images = [
-        product?.featured_image?.src,
-        ...product.images.map((image) => image.src),
-      ].filter((exists) => exists);
-
-      return {
-        tracking_id: product.id,
-        image_urls: images,
-        tag_set: product.tags,
-        chunk_html: `<h1>${product.title}</h1>${product.body_html}`,
-        metadata: product,
-        link: `${options.url}/products/${product.handle}${
-          product.variant_id ? `?variant=${product.variant_id}` : ""
-        }`,
-        num_value: parseFloat(product.price),
-      };
-    })
-  );
-  curPage++;
-  if (data.products.length === 0) {
-    curPage = -1;
-  }
-} while (curPage !== -1);
-
-console.clear();
-console.info(`Writing to ${options.output}`);
-
-await Bun.write(options.output, JSON.stringify(products, null, 2));
+program.parse();
