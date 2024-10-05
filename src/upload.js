@@ -1,7 +1,7 @@
 import fs from "fs";
 
 export const uploadToTrieve = async (options) => {
-  const { file, api_key, dataset } = options;
+  const { file, api_key, dataset, url } = options;
   let fileChunks;
 
   try {
@@ -31,7 +31,7 @@ export const uploadToTrieve = async (options) => {
       };
 
       const uploadedData = await fetch(
-        "https://api.trieve.ai/api/chunk",
+        `${url}/api/chunk`,
         options
       ).then((rsp) => rsp.json());
       if (!uploadedData.pos_in_queue) {

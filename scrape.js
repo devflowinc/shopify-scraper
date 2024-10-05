@@ -21,6 +21,7 @@ program
   .requiredOption("-f, --file <file path>", "JSON file to upload to trieve")
   .requiredOption("-a, --api_key <key>", "Your API key")
   .requiredOption("-d, --dataset <key>", "The dataset ID")
+  .option("-u, --url <url>", "Trieve URL to send chunks to", "https://api.trieve.ai")
   .action(uploadToTrieve);
 
 program.parse();
